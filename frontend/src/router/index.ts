@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Overview from '@/views/Overview.vue'
 const Ods = () => import('@/views/ods/index.vue')
 const Dwd = () => import('@/views/dwd/index.vue')
+const KeyConservation = () => import('@/views/key-conservation/index.vue')
 const Dws = () => import('@/views/dws/index.vue')
 const Ads = () => import('@/views/ads/index.vue')
 const Source = () => import('@/views/source/index.vue')
@@ -26,6 +27,7 @@ const router = createRouter({
     { path: '/', name: 'overview', component: Overview },
     { path: '/ods', name: 'ods', component: Ods },
     { path: '/dwd', name: 'dwd', component: Dwd },
+    { path: '/dwd/key-conservation', name: 'key-conservation', component: KeyConservation },
     { path: '/dws', name: 'dws', component: Dws },
     { path: '/ads', name: 'ads', component: Ads },
     { path: '/source', name: 'source', component: Source },

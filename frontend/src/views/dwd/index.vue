@@ -6,7 +6,8 @@
         <p class="page-desc">维护明细层建模配置的输入、执行约束与结果记录，为明细层建模提供可验证的数据工程流程。</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" type="button" @click="openCreate">登记明细表</button>
+        <RouterLink class="btn primary" to="/dwd/key-conservation">打开键守恒工作台</RouterLink>
+        <button class="btn" type="button" @click="openCreate">登记明细表</button>
         <button class="btn" type="button" @click="exportRows">导出明细层建模清单</button>
       </div>
     </header>

@@ -24,6 +24,32 @@
       </span>
     </p>
 
+    <article class="caliber-panel">
+      <h3>明细层可引用口径（仅经键守恒工作台确认的集合允许进入 DWS）</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>口径编号</th><th>来源明细表</th><th>去重口径</th><th>保留行数</th><th>字段版本</th><th>已引用汇总表</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="caliber in confirmedCalibers" :key="caliber.id">
+            <td>{{ caliber.id }}</td>
+            <td>{{ caliber.dwdTable }}</td>
+            <td>{{ caliber.strategyId === 'FIRST_EVENT' ? '按事件时间留首条' : '按版本号留末条' }}</td>
+            <td>{{ caliber.keptRowIds.length }}</td>
+            <td>{{ caliber.schemaVersion }}</td>
+            <td>{{ caliber.referencedByDws.join('、') || '—' }}</td>
+            <td class="row-actions">
+              <button class="link" type="button" @click="reference(caliber.id)">引用到当前汇总表</button>
+            </td>
+          </tr>
+          <tr v-if="!confirmedCalibers.length">
+            <td colspan="7" class="empty-state">暂无已确认口径，请先到键守恒工作台确认集合</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="caliber-tip">候选态口径不会出现在这里；去「明细层建模 → 键守恒工作台」完成矩阵核对与确认。</p>
+    </article>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
@@ -79,6 +105,11 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
+import {
+  confirmedCalibersForDws,
+  referenceCaliberByDws,
+} from '@/api/key-conservation-service'
+import type { Caliber } from '@/data/key-conservation/types'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('dws')
@@ -92,12 +123,26 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const confirmedCalibers = ref<Caliber[]>([])
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
     count: rows.value.filter((row) => String(row.status) === status).length,
   })),
 )
+
+function reference(caliberId: string) {
+  // 引用到当前清单中的第一张汇总表（纯前端演示没有选中行上下文）。
+  const target = rows.value[0]
+  const dwsTable = target ? String(target['表编号'] ?? `DWS-${target.id}`) : 'dws_demo_summary'
+  const result = referenceCaliberByDws(caliberId, dwsTable)
+  errorMessage.value = result.ok ? '' : result.message
+  reloadCalibers()
+}
+
+function reloadCalibers() {
+  confirmedCalibers.value = confirmedCalibersForDws()
+}
 
 function resetFilters() {
   filters.value = {}
@@ -133,5 +178,14 @@ function reload() {
   }
 }
 
-onMounted(reload)
+onMounted(() => {
+  reload()
+  reloadCalibers()
+})
 </script>
+
+<style scoped>
+.caliber-panel { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+.caliber-panel h3 { margin: 0 0 10px; font-size: 14px; }
+.caliber-tip { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+</style>
